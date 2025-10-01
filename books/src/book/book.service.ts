@@ -10,12 +10,33 @@ export class BookService {
         private readonly bookRepository: Repository<Book>,
     ) { }
 
+    async findAll(): Promise<Book[]> {
+        return await this.bookRepository.find();
+    }
+
     async getBook(bookId: string): Promise<Book> {
         const book = await this.bookRepository.findOne({ where: { id: bookId } });
         if (!book) {
             throw new NotFoundException('Book not found');
         }
         return book;
+    }
+
+    async createBook(data: Partial<Book>): Promise<Book> {
+        const book = this.bookRepository.create(data);
+        return await this.bookRepository.save(book);
+    }
+
+    async updateBook(id: string, data: Partial<Book>): Promise<Book> {
+        const book = await this.bookRepository.findOne({ where: { id } });
+        if (!book) throw new NotFoundException('Book not found');
+        Object.assign(book, data);
+        return await this.bookRepository.save(book);
+    }
+
+    async deleteBook(id: string): Promise<{ deleted: boolean }> {
+        const result = await this.bookRepository.delete(id);
+        return { deleted: result.affected === 1 };
     }
 
     async isBookInStock(bookId: string, quantity: number): Promise<boolean> {

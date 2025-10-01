@@ -1,18 +1,43 @@
-import { Controller, Get, Param, Inject } from '@nestjs/common';
-import { ClientProxy, Payload, MessagePattern } from '@nestjs/microservices';
+import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
 import { CustomerService } from './customer.service';
-
-const GET_CUSTOMER = 'getCustomer';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller('customer')
 export class CustomerController {
-  constructor(
-    private readonly customerService: CustomerService
-  ) {}
+  constructor(private readonly customerService: CustomerService) { }
 
-  @MessagePattern(GET_CUSTOMER)
+  @Get()
+  async findAll() {
+    console.log('[lms][customer][controller][findall] - fetching all customers');
+    return await this.customerService.findAll();
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    console.log(`[lms][customer][controller][findone] - fetching customer with id: ${id}`);
+    return await this.customerService.getCustomer(id);
+  }
+
+  @Post()
+  async create(@Body() body: any) {
+    console.log('[lms][customer][controller][create] - creating new customer', body);
+    return await this.customerService.createCustomer(body);
+  }
+
+  @Put(':id')
+  async update(@Param('id') id: string, @Body() body: any) {
+    console.log(`[lms][customer][controller][update] - updating customer with id: ${id}`, body);
+    return await this.customerService.updateCustomer(id, body);
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    console.log(`[lms][customer][controller][remove] - deleting customer with id: ${id}`);
+    return await this.customerService.deleteCustomer(id);
+  }
+
+  @MessagePattern('getCustomer')
   async handleGetCustomer(@Payload() data: { customerId: string }) {
-    const { customerId } = data;
-    return await this.customerService.getCustomer(customerId);
+    return await this.customerService.getCustomer(data.customerId);
   }
 }

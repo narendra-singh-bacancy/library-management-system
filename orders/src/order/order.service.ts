@@ -11,7 +11,13 @@ export class OrderService {
         private readonly orderRepository: Repository<Order>,
     ) { }
 
+    async findAll(): Promise<Order[]> {
+        console.log('[lms][order][service][findAll] - fetching all orders from repository');
+        return await this.orderRepository.find();
+    }
+
     async createOrder(createOrderDto: CreateOrderDto) {
+        console.log('[lms][order][service][createOrder] - creating order in repository', createOrderDto);
         const { bookId, customerId, quantity, totalPrice } = createOrderDto;
 
         const order = createOrderDto.id
@@ -30,15 +36,17 @@ export class OrderService {
             });
 
         await this.orderRepository.save(order);
-
+        console.log('[lms][order][service][createOrder] - order saved:', order);
         return order;
     }
 
     async getOrder(orderId: string): Promise<Order> {
+        console.log(`[lms][order][service][getOrder] - fetching order with id: ${orderId}`);
         const order = await this.orderRepository.findOne({
             where: { id: orderId },
         });
         if (!order) {
+            console.error(`[lms][order][service][getOrder] - order not found with id: ${orderId}`);
             throw new NotFoundException('Order not found');
         }
         return order;
@@ -47,16 +55,18 @@ export class OrderService {
     async deleteOrder(
         orderId: string,
     ): Promise<{ statusCode: HttpStatus; message: string }> {
+        console.log(`[lms][order][service][deleteOrder] - deleting order with id: ${orderId}`);
         const order = await this.orderRepository.findOne({
             where: { id: orderId },
         });
 
         if (!order) {
+            console.error(`[lms][order][service][deleteOrder] - order not found with id: ${orderId}`);
             throw new NotFoundException('Order not found');
         }
 
         await this.orderRepository.delete(orderId);
-
+        console.log(`[lms][order][service][deleteOrder] - order deleted with id: ${orderId}`);
         return {
             statusCode: HttpStatus.OK,
             message: 'Order deleted successfully',

@@ -23,6 +23,8 @@ async function bootstrap() {
     },
   });
 
-  await microservice.listen();
+  // await microservice.listen();
+  await app.startAllMicroservices();
+  console.log(`[lms][orders][main] - Application is running on: http://localhost:${PORT} and connected to RabbitMQ queue: ${RABBITMQ_QUEUE}`);
 }
 bootstrap();
