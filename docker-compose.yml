@@ -38,7 +38,7 @@ services:
     container_name: order
     restart: always
     ports:
-      - "3001:3000"
+      - "3001:3001"
     environment:
       DB_HOST: library-postgres
       DB_PORT: 5432
@@ -54,7 +54,7 @@ services:
     container_name: book
     restart: always
     ports:
-      - "3002:3000"
+      - "3002:3002"
     environment:
       DB_HOST: library-postgres
       DB_PORT: 5432
