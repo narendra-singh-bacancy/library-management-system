@@ -232,3 +232,204 @@ docker push ghcr.io/USERNAME/library-management-system-book:latest
 ```
 
 > Replace `USERNAME` with your GitHub username.
+
+## 🚀 Kubernetes Deployment Guide
+
+This project uses Kubernetes to deploy three microservices (`orders`, `books`, `customers`) along with a shared PostgreSQL database and cloud-based RabbitMQ. All container images are hosted on GitHub Container Registry (GHCR).
+
+---
+
+### 📦 Prerequisites
+
+- Docker Desktop with Kubernetes enabled (or any local/cloud Kubernetes cluster)
+- `kubectl` CLI installed
+- GHCR access token configured as a Kubernetes secret
+
+---
+
+### 🔐 Step 1: Create GHCR Pull Secret
+
+```bash
+kubectl create secret docker-registry ghcr-secret \
+  --docker-server=ghcr.io \
+  --docker-username=<your-ghcr-username> \
+  --docker-password=<your-ghcr-token> \
+  --docker-email=<your-email>
+```
+
+---
+
+### 🗄️ Step 2: Deploy Shared PostgreSQL with Persistent Storage
+
+```bash
+kubectl apply -f infra/k8s/postgres-pvc.yaml
+kubectl apply -f infra/k8s/postgres-deployment.yaml
+kubectl apply -f infra/k8s/postgres-service.yaml
+```
+
+> This creates a persistent volume and exposes PostgreSQL as `library-postgres:5432`.
+
+---
+
+### 📚 Step 3: Deploy Microservices
+
+Each service has its own `k8s` folder with `configmap.yaml`, `deployment.yaml`, and `service.yaml`.
+
+#### 🟢 Orders Service
+
+```bash
+kubectl apply -f orders/k8s/configmap.yaml
+kubectl apply -f orders/k8s/deployment.yaml
+kubectl apply -f orders/k8s/service.yaml
+```
+
+#### 📘 Books Service
+
+```bash
+kubectl apply -f books/k8s/configmap.yaml
+kubectl apply -f books/k8s/deployment.yaml
+kubectl apply -f books/k8s/service.yaml
+```
+
+#### 👥 Customers Service
+
+```bash
+kubectl apply -f customers/k8s/configmap.yaml
+kubectl apply -f customers/k8s/deployment.yaml
+kubectl apply -f customers/k8s/service.yaml
+```
+
+---
+
+### 🌐 Step 4: Access Services via NodePort
+
+| Service   | NodePort | URL for Postman |
+|-----------|----------|-----------------|
+| Customers | 30001    | http://localhost:30001 |
+| Orders    | 30011    | http://localhost:30011 |
+| Books     | 30021    | http://localhost:30021 |
+
+> You can test endpoints using Postman or curl.
+
+---
+
+### 🔁 Step 5: Restart or Reapply Services
+
+#### Reapply all manifests (without deleting):
+
+```bash
+kubectl apply -f orders/k8s/
+kubectl apply -f books/k8s/
+kubectl apply -f customers/k8s/
+```
+
+#### Delete and reapply (clean restart):
+
+```bash
+kubectl delete -f orders/k8s/
+kubectl delete -f books/k8s/
+kubectl delete -f customers/k8s/
+
+kubectl apply -f orders/k8s/
+kubectl apply -f books/k8s/
+kubectl apply -f customers/k8s/
+```
+
+#### Restart pods only:
+
+```bash
+kubectl delete pod -l app=orders
+kubectl delete pod -l app=books
+kubectl delete pod -l app=customers
+```
+
+---
+
+### 🔍 Step 6: Debugging and Logs
+
+```bash
+kubectl get pods
+kubectl get services
+kubectl logs <pod-name>
+kubectl describe pod <pod-name>
+```
+
+---
+
+### 🧠 Notes
+
+- All services use the same PostgreSQL instance (`library-postgres`)
+- RabbitMQ is cloud-hosted via CloudAMQP and accessed via env vars
+- Internal service URLs use Kubernetes DNS:
+  - http://book-service:3002
+  - http://customer-service:3000
+  - http://order-service:3001
+
+---
+
+### 📂 Folder Structure
+
+```
+infra/k8s/
+  ├── postgres-pvc.yaml
+  ├── postgres-deployment.yaml
+  └── postgres-service.yaml
+
+orders/k8s/
+books/k8s/
+customers/k8s/
+  ├── configmap.yaml
+  ├── deployment.yaml
+  └── service.yaml
+```
+
+---
+
+### 🛑 Step 7: Stop All Kubernetes Resources
+
+To cleanly stop all services, deployments, and volumes (except Kubernetes itself), run:
+
+#### 🧹 Delete Microservices
+
+```bash
+kubectl delete -f orders/k8s/
+kubectl delete -f books/k8s/
+kubectl delete -f customers/k8s/
+```
+
+#### 🧹 Delete Shared PostgreSQL
+
+```bash
+kubectl delete -f infra/k8s/postgres-deployment.yaml
+kubectl delete -f infra/k8s/postgres-service.yaml
+kubectl delete -f infra/k8s/postgres-pvc.yaml
+```
+
+> ✅ This removes the PostgreSQL pod, service, and persistent volume claim.
+
+---
+
+### 🧼 Optional: Delete GHCR Secret
+
+If you want to remove the image pull secret:
+
+```bash
+kubectl delete secret ghcr-secret
+```
+
+---
+
+### 🔄 Reset Kubernetes (Optional)
+
+To reset your entire Kubernetes cluster (e.g., in Docker Desktop):
+
+- Go to Docker Desktop → Settings → Kubernetes → Reset Kubernetes Cluster
+- Or use Minikube:
+  ```bash
+  minikube delete
+  ```
+
+---
+
+> 🧠 Tip: You can always reapply everything using the deployment steps above to restart your app from scratch.
+

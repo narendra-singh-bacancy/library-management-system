@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: library-postgres
+  labels:
+    app: library-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: library-postgres
+  template:
+    metadata:
+      labels:
+        app: library-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "library_user"
+            - name: POSTGRES_PASSWORD
+              value: "library_pass"
+            - name: POSTGRES_DB
+              value: "librarydb"
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: postgres-pvc

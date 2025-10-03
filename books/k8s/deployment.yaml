@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: books-deployment
+  labels:
+    app: books
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: books
+  template:
+    metadata:
+      labels:
+        app: books
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: books
+          image: ghcr.io/narendra-singh-bacancy/library-management-system-book:latest
+          ports:
+            - containerPort: 3002
+          envFrom:
+            - configMapRef:
+                name: books-config
+

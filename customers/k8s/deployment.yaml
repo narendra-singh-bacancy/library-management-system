@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customers-deployment
+  labels:
+    app: customers
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customers
+  template:
+    metadata:
+      labels:
+        app: customers
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: customers
+          image: ghcr.io/narendra-singh-bacancy/library-management-system-customer:latest
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: customers-config
+
