@@ -1,0 +1,15 @@
+# Dockerfile.dev
+FROM node:20-alpine
+WORKDIR /app
+
+# Install all dependencies (dev + prod)
+COPY package*.json ./
+RUN npm install
+
+# Copy full source for dev
+COPY . .
+
+EXPOSE 3000
+
+# Start in watch mode
+CMD ["npm", "run", "start:dev"]

@@ -1,0 +1,37 @@
+# docker-compose.prod.yml
+services:
+  customer:
+    build:
+      context: ./customers
+      dockerfile: Dockerfile.prod
+    env_file:
+      - ./customers/.env.prod
+    ports:
+      - "3000:3000"
+    depends_on:
+      library-postgres:
+        condition: service_healthy
+
+  order:
+    build:
+      context: ./orders
+      dockerfile: Dockerfile.prod
+    env_file:
+      - ./orders/.env.prod
+    ports:
+      - "3001:3001"
+    depends_on:
+      library-postgres:
+        condition: service_healthy
+
+  book:
+    build:
+      context: ./books
+      dockerfile: Dockerfile.prod
+    env_file:
+      - ./books/.env.prod
+    ports:
+      - "3002:3002"
+    depends_on:
+      library-postgres:
+        condition: service_healthy

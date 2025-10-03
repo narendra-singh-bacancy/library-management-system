@@ -17,6 +17,7 @@ import {
 import { OrderService } from './order.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { CreateOrderDto } from './order.dtos';
+import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 
 const GET_CUSTOMER = 'getCustomer';
@@ -27,6 +28,7 @@ const DECREASE_STOCK = 'DecreaseStock';
 @Controller('order')
 export class OrderController {
     constructor(
+        private readonly configService: ConfigService,
         private readonly orderService: OrderService,
         @Inject('BOOK_SERVICE') private readonly bookClient: ClientProxy,
         @Inject('CUSTOMER_SERVICE') private readonly customerClient: ClientProxy,
@@ -89,8 +91,9 @@ export class OrderController {
         const { bookId, quantity } = order;
         await this.orderService.deleteOrder(orderId);
         try {
+            const orderServiceUrl = this.configService.get<string>('ORDER_SERVICE_URL') ?? 'http://localhost:3002';
             console.log('[lms][order][controller][deleteOrder] - increasing book stock via book service');
-            await axios.patch(`http://localhost:3002/book/${bookId}`, {
+            await axios.patch(`${orderServiceUrl}/book/${bookId}`, {
                 quantity,
             });
             return res.status(HttpStatus.OK).json({

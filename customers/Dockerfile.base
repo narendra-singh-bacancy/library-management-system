@@ -1,0 +1,10 @@
+# Dockerfile.base
+FROM node:20-alpine
+WORKDIR /app
+
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy tsconfig files (needed for build)
+COPY tsconfig*.json ./

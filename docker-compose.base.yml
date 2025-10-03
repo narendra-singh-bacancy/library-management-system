@@ -1,0 +1,22 @@
+# docker-compose.base.yml
+services:
+  library-postgres:
+    image: postgres:15
+    container_name: library-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: library_user
+      POSTGRES_PASSWORD: library_pass
+      POSTGRES_DB: librarydb
+    ports:
+      - "5432:5432"
+    volumes:
+      - library_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U library_user -d librarydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  library_postgres_data:
